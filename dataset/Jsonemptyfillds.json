@@ -1,0 +1,23 @@
+{
+	"name": "Jsonemptyfillds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "adlsls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "empty.json",
+				"folderPath": "blankjson",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {
+			"type": "object"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

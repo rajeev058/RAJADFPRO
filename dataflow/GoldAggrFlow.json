@@ -1,0 +1,298 @@
+{
+	"name": "GoldAggrFlow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DmAirline"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DmFlight"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DmPassanger"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DmBooking"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceGitHub"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkGoldAirline",
+					"rejectedDataLinkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					}
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkgoldflight"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkpassanger"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkBooking"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkGit"
+				}
+			],
+			"transformations": [
+				{
+					"name": "uppercountry"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "alterRow"
+				},
+				{
+					"name": "alterRowflight"
+				},
+				{
+					"name": "uppercountrypassanger"
+				},
+				{
+					"name": "alterRowpassanger"
+				},
+				{
+					"name": "aggregatebooking"
+				},
+				{
+					"name": "alterRowbooking"
+				},
+				{
+					"name": "uppercountrygithub"
+				},
+				{
+					"name": "alterRowgit"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          airline_id as short,",
+				"          airline_name as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmAirline') ~> DmAirline",
+				"source(output(",
+				"          flight_number as string,",
+				"          departure_time as string,",
+				"          arrival_time as string,",
+				"          airline_id as short,",
+				"          booking_date as string,",
+				"          booking_id as short,",
+				"          checkin_status as boolean,",
+				"          destination_airport_id as short,",
+				"          flight_duration_mins as short,",
+				"          flight_id as short,",
+				"          origin_airport_id as short,",
+				"          passenger_id as short,",
+				"          ticket_cost as double",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmFlight') ~> DmFlight",
+				"source(output(",
+				"          passenger_id as short,",
+				"          full_name as string,",
+				"          gender as string,",
+				"          age as short,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmPassanger') ~> DmPassanger",
+				"source(output(",
+				"          airline_id as short,",
+				"          booking_date as string,",
+				"          booking_id as short,",
+				"          checkin_status as boolean,",
+				"          destination_airport_id as short,",
+				"          flight_duration_mins as short,",
+				"          flight_id as short,",
+				"          origin_airport_id as short,",
+				"          passenger_id as short",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmBooking') ~> DmBooking",
+				"source(output(",
+				"          airport_id as short,",
+				"          airport_name as string,",
+				"          city as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'Github') ~> sourceGitHub",
+				"DmAirline derive(country = upper(country)) ~> uppercountry",
+				"uppercountry aggregate(groupBy(country),",
+				"     airline_name = count(airline_name)) ~> aggregate1",
+				"aggregate1 alterRow(upsertIf(1==1)) ~> alterRow",
+				"DmFlight alterRow(upsertIf(1==1)) ~> alterRowflight",
+				"DmPassanger derive(country = upper(country)) ~> uppercountrypassanger",
+				"uppercountrypassanger alterRow(upsertIf(1==1)) ~> alterRowpassanger",
+				"DmBooking aggregate(groupBy(booking_date),",
+				"     passenger_id = count(passenger_id)) ~> aggregatebooking",
+				"aggregatebooking alterRow(upsertIf(1==1)) ~> alterRowbooking",
+				"sourceGitHub derive(country = upper(country)) ~> uppercountrygithub",
+				"uppercountrygithub alterRow(upsertIf(1>0)) ~> alterRowgit",
+				"alterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'DmAirline',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     upsertable: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SinkGoldAirline",
+				"alterRowflight sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'DmFlight',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     upsertable: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkgoldflight",
+				"alterRowpassanger sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'DmPassanger',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['passenger_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkpassanger",
+				"alterRowbooking sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'DmBooking',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     upsertable: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkBooking",
+				"alterRowgit sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'DmAirport',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['airport_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkGit"
+			]
+		}
+	}
+}

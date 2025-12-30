@@ -1,0 +1,20 @@
+{
+	"name": "ds_adlsjsonload",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "adlsls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "jsonload",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,22 @@
+{
+	"name": "apigithubjsonds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "apigithubjsonls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "anshlambagit/AnshLambaYoutube/refs/heads/main/ADF_Project/DimAirport.json",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

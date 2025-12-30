@@ -1,0 +1,9 @@
+{
+	"name": "rajlearningadf",
+	"location": "eastasia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "27dcad33-b218-4edb-92f2-f4967158c108",
+		"tenantId": "27bf7a78-11b7-4e9d-b386-5c3e60b41151"
+	}
+}

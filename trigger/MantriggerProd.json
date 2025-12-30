@@ -1,0 +1,24 @@
+{
+	"name": "MantriggerProd",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "ProdPipeline",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/input/blobs/FactFile_Sales_202401.csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/030967f9-a42d-472b-bfa1-b1c20338e09f/resourceGroups/rs1_raj/providers/Microsoft.Storage/storageAccounts/rajlearnadls",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

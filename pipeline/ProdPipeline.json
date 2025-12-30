@@ -1,0 +1,49 @@
+{
+	"name": "ProdPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Executemanpipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Manpipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Executefilestartwithpipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Executemanpipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "filestartwithpipeline",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-12-19T17:12:54Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

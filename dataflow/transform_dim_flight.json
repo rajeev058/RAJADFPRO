@@ -1,0 +1,296 @@
+{
+	"name": "transform_dim_flight",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dsflightbronze",
+						"type": "DatasetReference"
+					},
+					"name": "dimflighttransform"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_adlsbronzepassanger",
+						"type": "DatasetReference"
+					},
+					"name": "dimpassangertransform"
+				},
+				{
+					"dataset": {
+						"referenceName": "dsgithubjson",
+						"type": "DatasetReference"
+					},
+					"name": "gihubtransoformation"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_adlsjsonload",
+						"type": "DatasetReference"
+					},
+					"name": "incremetaljsontransform"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_airlinebronze",
+						"type": "DatasetReference"
+					},
+					"name": "airline"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkdimflight",
+					"rejectedDataLinkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					}
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkpassanger",
+					"rejectedDataLinkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					}
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkgithub",
+					"rejectedDataLinkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					}
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkincremental"
+				},
+				{
+					"linkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkairline",
+					"rejectedDataLinkedService": {
+						"referenceName": "adlsls",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedcolumnupper"
+				},
+				{
+					"name": "selectcolumn"
+				},
+				{
+					"name": "alterdimflight"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "alterpassenger"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "alterRow2"
+				},
+				{
+					"name": "alterRow3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          flight_id as short,",
+				"          flight_number as string,",
+				"          departure_time as string,",
+				"          arrival_time as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> dimflighttransform",
+				"source(output(",
+				"          passenger_id as short,",
+				"          full_name as string,",
+				"          gender as string,",
+				"          age as short,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> dimpassangertransform",
+				"source(output(",
+				"          airport_id as short,",
+				"          airport_name as string,",
+				"          city as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'arrayOfDocuments') ~> gihubtransoformation",
+				"source(output(",
+				"          airline_id as short,",
+				"          booking_date as string,",
+				"          booking_id as short,",
+				"          checkin_status as boolean,",
+				"          destination_airport_id as short,",
+				"          flight_duration_mins as short,",
+				"          flight_id as short,",
+				"          origin_airport_id as short,",
+				"          passenger_id as short,",
+				"          ticket_cost as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'documentPerLine') ~> incremetaljsontransform",
+				"source(output(",
+				"          airline_id as short,",
+				"          airline_name as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> airline",
+				"gihubtransoformation derive(country = upper(country)) ~> derivedcolumnupper",
+				"incremetaljsontransform select(mapColumn(",
+				"          airline_id,",
+				"          booking_date,",
+				"          booking_id,",
+				"          checkin_status,",
+				"          destination_airport_id,",
+				"          flight_duration_mins,",
+				"          flight_id,",
+				"          origin_airport_id,",
+				"          passenger_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectcolumn",
+				"select1 alterRow(upsertIf(1==1)) ~> alterdimflight",
+				"dimflighttransform select(skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"dimpassangertransform alterRow(upsertIf(1==1)) ~> alterpassenger",
+				"derivedcolumnupper alterRow(upsertIf(1==1)) ~> alterRow1",
+				"selectcolumn alterRow(upsertIf(1==1)) ~> alterRow2",
+				"airline alterRow(upsertIf(1==1)) ~> alterRow3",
+				"alterdimflight sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmFlight',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['flight_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 0) ~> sinkdimflight",
+				"alterpassenger sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmPassanger',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['passenger_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkpassanger",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'Github',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['airport_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkgithub",
+				"alterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmBooking',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['booking_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkincremental",
+				"alterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DmAirline',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['airline_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkairline"
+			]
+		}
+	}
+}

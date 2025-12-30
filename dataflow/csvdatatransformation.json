@@ -1,0 +1,79 @@
+{
+	"name": "csvdatatransformation",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "targetds",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "sinkfinalds",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selecttransformation"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "aggregate"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          sale_id as short,",
+				"          product_id as string,",
+				"          customer_id as string,",
+				"          sale_date as date,",
+				"          quantity as short,",
+				"          amount as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 select(mapColumn(",
+				"          sale_id,",
+				"          product_id,",
+				"          customer_id,",
+				"          sale_date,",
+				"          quantity",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selecttransformation",
+				"selecttransformation split(product_id == 'P100',",
+				"     product_id =='P101',",
+				"     disjoint: false) ~> split1@(Prod0, Prod1, Prod2)",
+				"split1@Prod0 aggregate(groupBy(product_id),",
+				"     quantity = max(quantity)) ~> aggregate",
+				"aggregate sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          sale_id as string,",
+				"          product_id as string,",
+				"          customer_id as string,",
+				"          sale_date as string,",
+				"          quantity as string,",
+				"          amount as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
+			]
+		}
+	}
+}
