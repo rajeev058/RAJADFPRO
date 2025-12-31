@@ -48,7 +48,10 @@
 						"requestInterval": "00.00:00:00.010",
 						"requestMethod": "GET",
 						"paginationRules": {
-							"AbsoluteUrl.https://pokeapi.co/api/v2/pokemon/": ""
+							"QueryParameters.offset": {
+								"value": "RANGE:0:@{activity('WebRestApi').output.count}: 20",
+								"type": "Expression"
+							}
 						}
 					},
 					"sink": {
