@@ -1,0 +1,9 @@
+{
+	"name": "rajadflearningseries",
+	"location": "eastasia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "b5951b37-911b-4183-acfd-ecfd47dc8142",
+		"tenantId": "4fae5c0d-53a0-45c8-9132-de2e6cfb983f"
+	}
+}
